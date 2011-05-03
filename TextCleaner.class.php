@@ -98,9 +98,13 @@ class TextCleaner {
     $this->wa = $this->single_chars_cleanup($this->wa);
     $this->wa = $this->stop_words_cleanup($this->wa);
 
-    $this->wa = array_count_values($this->wa);
-    arsort($this->wa);
     return TRUE;
+  }
+
+  function count_words() {
+    $counted_words = array_count_values($this->wa);
+    arsort($counted_words);
+    return $counted_words;
   }
 
   /**
