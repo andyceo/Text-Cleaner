@@ -1,20 +1,20 @@
 <?php
 
 class TextCleaner {
-  public $text = '';
-  public $stemmer_dir = '/home/andyceo/Develop/PHP-Porter-Stemmer';
+  private $wa = array(); // array of words
+  private $main_text_lang = 'ru';
   private $encoding = 'UTF-8'; // encoding of $this->text
   private $default_delimiter = ' ';
-  private $stop_words_dir = __DIR__;
+  private $stop_words_dir = __DIR__ . '/stopwords';
 
   /**
    * Constructor
    */
   function __construct($text = '', $encoding = 'UTF-8') {
-    $this->text = $text;
     if ($encoding != $this->encoding) {
-      $this->text = mb_convert_encoding($this->text, $this->encoding, $encoding);
+      $text = mb_convert_encoding($text, $this->encoding, $encoding);
     }
+    $this->text_cleanup($text);
   }
 
   /**
@@ -24,103 +24,84 @@ class TextCleaner {
 
   }
 
+  function getWordsArray() {
+    return $this->wa;
+  }
+
   /**
    * Step 1.0: Remove html markup.
    */
-  function html_cleanup() {
-    $this->text = strip_tags($this->text);
+  function html_cleanup($text) {
+    $text = strip_tags($text);
+    return $text;
   }
 
   /**
    * Step 1.1: Punctuation
    */
-  function delimiters_cleanup() {
+  function delimiters_cleanup($text) {
     if (empty($this->default_delimiter)) {
       $this->default_delimiter = ' ';
     }
     $default_delimiter = $this->default_delimiter;
     $delimiters = $this->get_delimiters($this->default_delimiter);
-    $this->text = str_replace($delimiters, $default_delimiter, $this->text);
+    $text = str_replace($delimiters, $default_delimiter, $text);
 
     // after the punctuation cleaning, we can split text to the array of words
-    $this->text = explode($default_delimiter, $this->text);
-    $this->text = array_filter($this->text); // remove the empty elements
+    $text = explode($default_delimiter, $text);
+    $text = array_filter($text); // remove the empty elements
+    return $text;
   }
 
   /**
    * Step 1.2: Numbers
    */
-  function numbers_cleanup() {
-    $this->text = array_filter($this->text, function ($v) {return !is_numeric($v);});
+  function numbers_cleanup($text) {
+    $text = array_filter($text, function ($v) {return !is_numeric($v);});
+    return $text;
   }
 
   /**
    * Step 1.3: Single chars
    */
-  function single_chars_cleanup() {
-    $this->text = array_filter($this->text, function ($v) {return mb_strlen($v) > 1;});
+  function single_chars_cleanup($text) {
+    $text = array_filter($text, function ($v) {return mb_strlen($v) > 1;});
+    return $text;
   }
 
   /**
    * Step 1.4: Remove the stop-list words
    */
-  function stop_words_cleanup() {
-    $stop_words = file_get_contents($this->stop_words_dir . '/stop_words.txt');
+  function stop_words_cleanup($text) {
+    $stop_words = file_get_contents($this->stop_words_dir . '/' . $this->main_text_lang . '.txt');
     $stop_words = explode("\n", $stop_words);
     $stop_words = array_map('trim', $stop_words);
     $stop_words = array_filter($stop_words);
-    $this->text = array_filter($this->text, function ($v) use ($stop_words) {
+    $text = array_filter($text, function ($v) use ($stop_words) {
       return !in_array($v, $stop_words);}
     );
+    return $text;
   }
 
   /**
-   * Step 1: Preliminary text cleaning, in five steps:
+   * Preliminary text cleaning, in five steps:
    *   1.1 Punctuation
    *   1.2 Numbers
    *   1.3 Single chars
    *   1.4 Remove the stop-list words
    */
-  function text_cleanup() {
-    $this->html_cleanup();
-    $this->delimiters_cleanup();
-    $this->numbers_cleanup();
-    $this->single_chars_cleanup();
-    $this->stop_words_cleanup();
-  }
+  function text_cleanup($text) {
+    $text = $this->html_cleanup($text);
+    $this->wa = $this->delimiters_cleanup($text);
+    unset ($text); // memory!
+    $this->wa = $this->numbers_cleanup($this->wa);
+    $this->wa = $this->single_chars_cleanup($this->wa);
+    $this->wa = $this->stop_words_cleanup($this->wa);
 
-  /**
-   * Step 2: stemming
-   */
-  function text_stemming() {
-    if (empty($this->stemmer_dir)) {
-      return FALSE;
-    }
-    require_once($this->stemmer_dir . '/Lingua_Stem_Ru.class.php');
-    $stemmer = new Lingua_Stem_Ru;
-    $this->text = array_map(function ($v) use ($stemmer) {
-        return $stemmer->stem_word($v);
-      }, $this->text);
-    $this->single_chars_cleanup();
+    $this->wa = array_count_values($this->wa);
+    arsort($this->wa);
+    return TRUE;
   }
-
-  /**
-   * Step 3: count number of entries of stems
-   */
-  function count_stems() {
-    $stems = array_count_values($this->text);
-    /*
-    $this->text = array_filter($this->text, function ($v) {
-      return $v > 1;
-    });
-    */
-    arsort($stems);
-    return $stems;
-  }
-
-  /**
-   * Step 4: LSA (LSI) begin :)
-   */
 
   /**
    *
