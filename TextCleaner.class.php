@@ -98,7 +98,7 @@ class TextCleaner {
     $this->wa = $this->numbers_cleanup($this->wa);
     $this->wa = $this->single_chars_cleanup($this->wa);
     $this->wa = $this->stop_words_cleanup($this->wa);
-
+    $this->wa = array_values($this->wa); //reindex the array;
     return TRUE;
   }
 
