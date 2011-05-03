@@ -5,12 +5,13 @@ class TextCleaner {
   private $main_text_lang = 'ru';
   private $encoding = 'UTF-8'; // encoding of $this->text
   private $default_delimiter = ' ';
-  private $stop_words_dir = __DIR__ . '/stopwords';
+  private $stop_words_dir = __DIR__;
 
   /**
    * Constructor
    */
   function __construct($text = '', $encoding = 'UTF-8') {
+    $this->stop_words_dir = $this->stop_words_dir . '/stopwords';
     if ($encoding != $this->encoding) {
       $text = mb_convert_encoding($text, $this->encoding, $encoding);
     }
