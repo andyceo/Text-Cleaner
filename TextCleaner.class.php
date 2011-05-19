@@ -94,7 +94,7 @@ class TextCleaner {
     $stop_words = array_map('trim', $stop_words);
     $stop_words = array_filter($stop_words);
     $text = array_filter($text, function ($v) use ($stop_words) {
-      return !in_array($v, $stop_words);}
+      return !in_array(mb_strtolower($v), $stop_words);}
     );
     return $text;
   }
