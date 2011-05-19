@@ -1,9 +1,12 @@
 <?php
 
+// @todo use the barricade method to check functions arguments
+
 class TextCleaner {
-  private $wa = array(); // array of words
+  private $text = ''; //text to process
+  private $wa = array(); // words array
   private $main_text_lang = 'ru';
-  private $encoding = 'UTF-8'; // encoding of $this->text
+  private $main_encoding = 'UTF-8'; // encoding of the $this->text
   private $default_delimiter = ' ';
   private $stop_words_dir = __DIR__;
 
@@ -25,7 +28,19 @@ class TextCleaner {
 
   }
 
-  function getWordsArray() {
+  /**
+   * This function reset class to default settings
+   */
+  function reset() {
+
+  }
+
+  /**
+   * This function return the array of words. Array of words created,
+   * when text after cleaning treated as array of words, regardless
+   * of the order of the words. Text is just an array of words.
+   */
+  function get_words_array() {
     return $this->wa;
   }
 
@@ -109,9 +124,9 @@ class TextCleaner {
   }
 
   /**
-   *
+   * Return array of the possible text delimiters
    */
-  function get_delimiters($default_delimiter = ' ') {
+  public static function get_delimiters($default_delimiter = ' ') {
     $delimiters = array(' ', ' ', ',', '.', '!', '?', ';', ':', '"', '*', '~',
     ' -', '- ', '--', '&nbsp;', '(', ')', '[', ']', '{', '}', '#', '%',
     '/', '\\', '  ', '|', '+', '&',
